@@ -127,6 +127,49 @@ RSpec.describe Rspec::RequestSnapshot do
     end
   end
 
+  describe "text format" do
+    before(:all) { RSpec.configuration.request_snapshots_default_format = :text }
+    after(:all) { RSpec.configuration.request_snapshots_default_format = :json }
+
+    let(:sample_text) { "XX alpha=beta XX gamma=epsilon XX beta=beta" }
+
+    it "matches basic text" do
+      expect(sample_text).to match_snapshot("api/basic_text", format: :text)
+    end
+
+    describe "exclusions" do
+      it "matches with exclusions" do
+        expect(sample_text.gsub("beta", "beeeeeeta")).to match_snapshot("api/basic_text", excluding: [/be+ta/])
+      end
+
+      it "matches with multiple exclusions" do
+        expected = sample_text.gsub("beta", "beeeeeeta").gsub("alpha", "alph")
+        expect(expected).to match_snapshot("api/basic_text", excluding: [/be+ta/, /alpha?/])
+      end
+
+      it "matches when exclusions are not found" do # is this desired, or better to raise?
+        expect(sample_text).to match_snapshot("api/basic_text", excluding: [/asdf/])
+      end
+
+      it "matches with a single non-array exclusion" do
+        expect(sample_text.gsub("beta", "beeeeeeta")).to match_snapshot("api/basic_text", excluding: /be+ta/)
+      end
+
+      it "fails when the exclusions don't excluding the differing segment" do
+        expect(sample_text.gsub("alpha", "alppppppha")).not_to match_snapshot("api/basic_text", excluding: [/be+ta/])
+      end
+
+      context "when setting a config level request_snapshots_text_excluding setting" do
+        before { RSpec.configuration.request_snapshots_text_excluding = [/be+ta/] }
+        after { RSpec.configuration.request_snapshots_text_excluding = [] }
+
+        it "matches with exclusions" do
+          expect(sample_text.gsub("beta", "beeeeeeta")).to match_snapshot("api/basic_text")
+        end
+      end
+    end
+  end
+
   describe "format" do
     let(:sample_text) { "My text test" }
 
@@ -144,40 +187,6 @@ RSpec.describe Rspec::RequestSnapshot do
 
       it "matches text without passing the format argument" do
         expect(sample_text).to match_snapshot("api/text")
-      end
-    end
-  end
-
-  describe "text format" do
-    before(:all) { RSpec.configuration.request_snapshots_default_format = :text }
-    after(:all) { RSpec.configuration.request_snapshots_default_format = :json }
-
-    let(:sample_text) { "XX alpha=beta XX gamma=epsilon XX beta=beta" }
-
-    it "matches basic text" do
-      expect(sample_text).to match_snapshot("api/basic_text", format: :text)
-    end
-
-    describe "exclusions" do
-      it "matches with exclusions" do
-        expect(sample_text.gsub('beta', 'beeeeeeta')).to match_snapshot("api/basic_text", excluding: [/be+ta/])
-      end
-
-      it "matches with multiple exclusions" do
-        expected = sample_text.gsub('beta', 'beeeeeeta').gsub('alpha', 'alph')
-        expect(expected).to match_snapshot("api/basic_text", excluding: [/be+ta/, /alpha?/])
-      end
-
-      it "matches when exclusions are not found" do # is this desired, or better to raise?
-        expect(sample_text).to match_snapshot("api/basic_text", excluding: [/asdf/])
-      end
-
-      it "matches with a single non-array exclusion" do
-        expect(sample_text.gsub('beta', 'beeeeeeta')).to match_snapshot("api/basic_text", excluding: /be+ta/)
-      end
-
-      it "fails when the exclusions don't excluding the differing segment" do
-        expect(sample_text.gsub("alpha", "alppppppha")).not_to match_snapshot("api/basic_text", excluding: [/be+ta/])
       end
     end
   end

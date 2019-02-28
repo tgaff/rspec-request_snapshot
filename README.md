@@ -42,6 +42,10 @@ RSpec.configure do |config|
   # The json attributes that ignore order when comparing nodes
   # Default value is []
   config.request_snapshots_ignore_order = %w(array_node)
+  
+  # The array of regex entries that will be ignored when comparing in text mode
+  # Default value is []
+  config.request_snapshots_text_excluding = [ /data-id='\d+'/ ]
 end
 ```
 

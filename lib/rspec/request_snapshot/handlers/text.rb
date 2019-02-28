@@ -16,12 +16,13 @@ class Rspec::RequestSnapshot::Handlers::Text < Rspec::RequestSnapshot::Handlers:
   def transform(str)
     str = str.dup
     exclusions.each do |exclusion|
-      str.gsub!(exclusion, '===EXCLUDED===')
+      str.gsub!(exclusion, "===EXCLUDED===")
     end
     str
   end
 
   def exclusions
-    @exclusions ||= Array(@options[:excluding])
+    @exclusions ||= RSpec.configuration.request_snapshots_text_excluding |
+                    Array(@options[:excluding])
   end
 end
