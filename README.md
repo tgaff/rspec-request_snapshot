@@ -65,7 +65,8 @@ expect(response.body).to match_snapshot("api/resources_index", format: :text)
 
 #### Matcher options
 
-##### dynamic_attributes
+##### JSON matcher
+###### dynamic_attributes
 
 Using `dynamic_attributes` inline allows to ignore attributes for a specific snapshot.
 This is useful to ignore changing attributes, like `id` or `created_at`.
@@ -76,7 +77,7 @@ Notice that **all** nodes matching those (nested or not) will be ignored. Usage:
 expect(response.body).to match_snapshot("api/resources_index", dynamic_attributes: %w(confirmed_at relation_id))
 ```
 
-##### ignore_order
+###### ignore_order
 
 It is possible to use the `ignore_order` inline option to mark which array nodes are unsorted and that elements position
 should not be taken into consideration.
@@ -88,6 +89,26 @@ expect(response.body).to match_snapshot("api/resources_index", ignore_order: %w(
 
 **Note:** If you are using `ignore_order` for arrays of objects/hashes (ie: `[{name: "name", value: "value"}, ...]`),
 it won't perform well depending on the array and hash size (number of keys)
+
+##### text matcher
+
+###### excluding
+
+Using `excluding` inline allows you to specify regular expressions of values to exclude from the text match.  
+This is somewhat similar to `dynamic_attributes` on the JSON matcher.
+
+```ruby
+body = "<div data-id='100' class='selected'>my data</div><div class='kind selected' id='45'>"
+# Ignore specific text that may change in each run
+expect(body).to match_snapshot("api/sample", format: :text, excluding: /data-id='\d+'/)
+# Ignore multiple text sub-strings that may change
+data_ids = /data-id='\d+'/
+classes = /class='[\s\w]*'/
+expect(body).to match_snapshot("api/sample", format: :text, excluding: [ data_ids, classes ])
+```
+
+Do be careful though, regex can be very greedy.
+
 
 ## Development
 
